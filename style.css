@@ -1,0 +1,23 @@
+/* Estilos básicos para el área de juego */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #282c34;
+}
+
+#gameArea {
+    position: relative;
+    width: 80vw;
+    height: 80vh;
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    background-color: #20232a;
+    border: 2px solid #fff;
+}
