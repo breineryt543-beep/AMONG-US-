@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mithur - Cómic</title>
   <link rel="stylesheet" href="style.css">
   <!-- SDK de Supabase -->
@@ -10,39 +11,59 @@
 <body>
 
   <!-- Encabezado estilo Netflix -->
-  <header>
-    <h1>MITHUR</h1>
-    <div id="user-profile" style="display:none;">
-      <img id="avatar-img" src="" alt="Perfil" width="40" height="40" style="border-radius:50%;">
+  <header class="navbar">
+    <h1 class="logo">MITHUR</h1>
+    <div id="user-profile" class="user-profile" style="display:none;">
+      <img id="avatar-img" src="" alt="Perfil">
       <span id="user-name"></span>
     </div>
   </header>
 
-  <!-- Formulario de Registro / Login -->
-  <section id="auth-section">
-    <h2>Entrar a Mithur</h2>
-    <input type="text" id="nombre" placeholder="Nombre de usuario">
-    <input type="password" id="password" placeholder="Contraseña">
-    <label>Foto de perfil:</label>
-    <input type="file" id="foto-input" accept="image/*">
-    <button id="btn-login">Iniciar Sesión / Registrarse</button>
-  </section>
+  <!-- Pantalla de Login / Registro -->
+  <main id="auth-container" class="auth-container">
+    <div class="auth-card">
+      <h2 id="form-title">Inicia Sesión</h2>
+      
+      <div class="input-group">
+        <input type="text" id="nombre" required placeholder=" ">
+        <label for="nombre">Nombre de usuario</label>
+      </div>
 
-  <!-- Visor del Cómic -->
-  <main id="comic-section">
-    <h2>Capítulo 1</h2>
-    <div class="comic-viewer">
-      <!-- Aquí pones las imágenes de las páginas de tu cómic -->
-      <img src="paginas/pag1.jpg" alt="Página 1 de Mithur">
+      <div class="input-group">
+        <input type="password" id="password" required placeholder=" ">
+        <label for="password">Contraseña</label>
+      </div>
+
+      <!-- Foto opcional (solo se muestra o resalta en Registro) -->
+      <div class="input-group file-group" id="file-group">
+        <label class="file-label" for="foto-input">📷 Foto de perfil (Opcional)</label>
+        <input type="file" id="foto-input" accept="image/*">
+      </div>
+
+      <div class="btn-group">
+        <button id="btn-login" class="btn btn-primary">Iniciar Sesión</button>
+        <button id="btn-register" class="btn btn-secondary">Registrarse</button>
+      </div>
     </div>
   </main>
 
-  <!-- Panel de Admin (Solo para ti) -->
-  <section id="admin-panel" style="display:none; background: #222; padding: 20px; margin-top: 20px;">
-    <h2>Panel de Creador (Admin)</h2>
-    <p>¡Hola! Desde aquí puedes publicar nuevas páginas de Mithur.</p>
-    <input type="file" id="nueva-pagina">
-    <button>Subir Página</button>
+  <!-- Visor del Cómic (Oculto hasta iniciar sesión) -->
+  <section id="comic-section" class="comic-section" style="display:none;">
+    <h2>Capítulo 1: El Origen</h2>
+    <div class="comic-viewer">
+      <!-- Agrega las páginas de Mithur aquí -->
+      <img src="paginas/pag1.jpg" alt="Página 1 de Mithur">
+    </div>
+  </section>
+
+  <!-- Panel Admin (Solo visible para ti) -->
+  <section id="admin-panel" class="admin-panel" style="display:none;">
+    <div class="admin-card">
+      ⚡ <h2>Panel de Creador (Admin)</h2>
+      <p>Sube las nuevas páginas de Mithur directamente a la plataforma.</p>
+      <input type="file" id="nueva-pagina" accept="image/*">
+      <button class="btn btn-primary">Subir Página</button>
+    </div>
   </section>
 
   <script src="script.js"></script>
