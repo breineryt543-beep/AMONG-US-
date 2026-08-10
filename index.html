@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mithur - Cómic</title>
+  <title>Mision Lunar - Cómic</title>
   <link rel="stylesheet" href="style.css">
   <!-- SDK de Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,17 +12,18 @@
 
   <!-- Encabezado estilo Netflix -->
   <header class="navbar">
-    <h1 class="logo">MITHUR</h1>
+    <h1 class="logo">Mision Lunar</h1>
     <div id="user-profile" class="user-profile" style="display:none;">
       <img id="avatar-img" src="" alt="Perfil">
       <span id="user-name"></span>
+      <button id="btn-logout" class="btn-logout">Cerrar Sesión</button>
     </div>
   </header>
 
   <!-- Pantalla de Login / Registro -->
   <main id="auth-container" class="auth-container">
     <div class="auth-card">
-      <h2 id="form-title">Inicia Sesión</h2>
+      <h2 id="form-title">Entrar a Mision Lunar</h2>
       
       <div class="input-group">
         <input type="text" id="nombre" required placeholder=" ">
@@ -34,7 +35,7 @@
         <label for="password">Contraseña</label>
       </div>
 
-      <!-- Foto opcional (solo se muestra o resalta en Registro) -->
+      <!-- Foto opcional -->
       <div class="input-group file-group" id="file-group">
         <label class="file-label" for="foto-input">📷 Foto de perfil (Opcional)</label>
         <input type="file" id="foto-input" accept="image/*">
@@ -44,15 +45,16 @@
         <button id="btn-login" class="btn btn-primary">Iniciar Sesión</button>
         <button id="btn-register" class="btn btn-secondary">Registrarse</button>
       </div>
+      <p id="msg-error" class="msg-error"></p>
     </div>
   </main>
 
-  <!-- Visor del Cómic (Oculto hasta iniciar sesión) -->
+  <!-- Visor del Cómic -->
   <section id="comic-section" class="comic-section" style="display:none;">
-    <h2>Capítulo 1: El Origen</h2>
+    <h2>Capítulo 1: El Comienzo</h2>
     <div class="comic-viewer">
-      <!-- Agrega las páginas de Mithur aquí -->
-      <img src="paginas/pag1.jpg" alt="Página 1 de Mithur">
+      <!-- Agrega las páginas de tu cómic aquí -->
+      <img src="paginas/pag1.jpg" alt="Página 1 de Mision Lunar">
     </div>
   </section>
 
@@ -60,7 +62,7 @@
   <section id="admin-panel" class="admin-panel" style="display:none;">
     <div class="admin-card">
       ⚡ <h2>Panel de Creador (Admin)</h2>
-      <p>Sube las nuevas páginas de Mithur directamente a la plataforma.</p>
+      <p>Sube las nuevas páginas de Mision Lunar directamente a la plataforma.</p>
       <input type="file" id="nueva-pagina" accept="image/*">
       <button class="btn btn-primary">Subir Página</button>
     </div>
