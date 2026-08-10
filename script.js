@@ -11,7 +11,16 @@ const msgError = document.getElementById('msg-error');
 const AVATAR_DEFECTO = 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png';
 let usuarioActual = null;
 
-// --- CONTROL DEL MENÚ LATERAL ---
+// --- PERSISTENCIA DE SESIÓN AL RECARGAR LA PÁGINA (F5) ---
+window.addEventListener('DOMContentLoaded', () => {
+  const sesionGuardada = localStorage.getItem('ml_sesion_activa');
+  if (sesionGuardada) {
+    usuarioActual = JSON.parse(sesionGuardada);
+    iniciarSesionUI();
+  }
+});
+
+// CONTROL MENÚ LATERAL
 btnMenu.addEventListener('click', () => {
   sidebar.classList.add('open');
   sidebarOverlay.classList.add('active');
@@ -25,7 +34,7 @@ function cerrarSidebar() {
 btnCloseSidebar.addEventListener('click', cerrarSidebar);
 sidebarOverlay.addEventListener('click', cerrarSidebar);
 
-// NAVEGACIÓN ENTRE PESTAÑAS
+// NAVEGACIÓN
 const secciones = {
   'nav-inicio': 'sec-inicio',
   'nav-blog': 'sec-blog',
@@ -47,10 +56,10 @@ Object.keys(secciones).forEach(navId => {
     cerrarSidebar();
 
     if (navId === 'nav-global') cargarPerfilesGlobales();
+    if (navId === 'nav-blog') cargarChatLive();
   });
 });
 
-// --- BASE DE DATOS LOCAL Y FOTOS ---
 function leerImagenComoBase64(file) {
   return new Promise((resolve) => {
     if (!file) resolve(AVATAR_DEFECTO);
@@ -60,7 +69,7 @@ function leerImagenComoBase64(file) {
   });
 }
 
-// REGISTRO
+// 1. REGISTRO EN LA BASE DE DATOS D1
 btnRegister.addEventListener('click', async () => {
   msgError.innerText = '';
   const nombre = document.getElementById('nombre').value.trim();
@@ -68,51 +77,53 @@ btnRegister.addEventListener('click', async () => {
   const fotoArchivo = document.getElementById('foto-input').files[0];
 
   if (!nombre || !password) {
-    msgError.innerText = 'Por favor completa todos los campos.';
-    return;
-  }
-
-  let usuarios = JSON.parse(localStorage.getItem('ml_usuarios') || '{}');
-
-  if (usuarios[nombre]) {
-    msgError.innerText = 'El nombre de usuario ya existe.';
+    msgError.innerText = 'Por favor ingresa usuario y contraseña.';
     return;
   }
 
   const fotoUrl = await leerImagenComoBase64(fotoArchivo);
-  const esOwner = (nombre === 'breinerYT');
 
-  usuarios[nombre] = { password, fotoUrl, esOwner };
-  localStorage.setItem('ml_usuarios', JSON.stringify(usuarios));
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, password, fotoUrl })
+    });
 
-  alert('¡Registro exitoso! Ya puedes iniciar sesión.');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    alert('¡Registro exitoso en la base de datos! Ahora inicia sesión.');
+  } catch (err) {
+    msgError.innerText = err.message;
+  }
 });
 
-// LOGIN
-btnLogin.addEventListener('click', () => {
+// 2. INICIO DE SESIÓN CON D1
+btnLogin.addEventListener('click', async () => {
   msgError.innerText = '';
   const nombre = document.getElementById('nombre').value.trim();
   const password = document.getElementById('password').value.trim();
 
-  let usuarios = JSON.parse(localStorage.getItem('ml_usuarios') || '{}');
-  const user = usuarios[nombre];
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, password })
+    });
 
-  if (!user || user.password !== password) {
-    msgError.innerText = 'Usuario o contraseña incorrectos.';
-    return;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    usuarioActual = data.user;
+    localStorage.setItem('ml_sesion_activa', JSON.stringify(usuarioActual));
+    iniciarSesionUI();
+  } catch (err) {
+    msgError.innerText = err.message;
   }
-
-  usuarioActual = { nombre, ...user };
-
-  // Detección automática de OWNER para la cuenta breinerYT
-  if (nombre === 'breinerYT') {
-    usuarioActual.esOwner = true;
-  }
-
-  iniciarSesion();
 });
 
-function iniciarSesion() {
+function iniciarSesionUI() {
   document.getElementById('auth-container').style.display = 'none';
   document.getElementById('app-content').style.display = 'block';
 
@@ -121,7 +132,7 @@ function iniciarSesion() {
   document.getElementById('user-profile').style.display = 'flex';
 
   const badge = document.getElementById('user-badge');
-  if (usuarioActual.esOwner) {
+  if (usuarioActual.esOwner || usuarioActual.nombre === 'breinerYT') {
     badge.innerText = 'OWNER';
     badge.className = 'badge badge-owner';
     document.getElementById('nav-owner').style.display = 'block';
@@ -134,67 +145,88 @@ function iniciarSesion() {
   cargarChatLive();
 }
 
-btnLogout.addEventListener('click', () => location.reload());
+btnLogout.addEventListener('click', () => {
+  localStorage.removeItem('ml_sesion_activa');
+  location.reload();
+});
 
-// --- 2. BLOG LIVE CHAT ---
+// 3. BLOG CHAT LIVE
 const btnSendChat = document.getElementById('btn-send-chat');
 const chatInput = document.getElementById('chat-input');
 const chatMessages = document.getElementById('chat-messages');
 
-function cargarChatLive() {
-  const mensajes = JSON.parse(localStorage.getItem('ml_chat_live') || '[]');
-  chatMessages.innerHTML = '';
-  mensajes.forEach(m => {
-    const div = document.createElement('div');
-    div.className = 'chat-msg';
-    div.innerHTML = `<div class="author">${m.autor}</div><div>${m.texto}</div>`;
-    chatMessages.appendChild(div);
-  });
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+async function cargarChatLive() {
+  try {
+    const res = await fetch('/api/chat');
+    const mensajes = await res.json();
+    
+    chatMessages.innerHTML = '';
+    mensajes.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'chat-msg';
+      div.innerHTML = `<div class="author">${m.autor}</div><div>${m.texto}</div>`;
+      chatMessages.appendChild(div);
+    });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  } catch (e) {
+    console.error("Error al cargar chat", e);
+  }
 }
 
-btnSendChat.addEventListener('click', () => {
+btnSendChat.addEventListener('click', async () => {
   const texto = chatInput.value.trim();
   if (!texto) return;
 
-  const mensajes = JSON.parse(localStorage.getItem('ml_chat_live') || '[]');
-  mensajes.push({ autor: usuarioActual.nombre, texto });
-  localStorage.setItem('ml_chat_live', JSON.stringify(mensajes));
+  await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ autor: usuarioActual.nombre, texto })
+  });
 
   chatInput.value = '';
   cargarChatLive();
 });
 
-// --- 4. SECCIÓN GLOBAL (PERFILES) ---
-function cargarPerfilesGlobales() {
+// 4. GLOBAL (PERFILES DESDE BASE DE DATOS D1)
+async function cargarPerfilesGlobales() {
   const grid = document.getElementById('global-profiles-list');
-  const usuarios = JSON.parse(localStorage.getItem('ml_usuarios') || '{}');
-  grid.innerHTML = '';
+  grid.innerHTML = 'Cargando usuarios...';
 
-  Object.keys(usuarios).forEach(usrName => {
-    const u = usuarios[usrName];
-    const card = document.createElement('div');
-    card.className = 'profile-card';
-    card.innerHTML = `
-      <img src="${u.fotoUrl}" alt="Avatar">
-      <h3>${usrName}</h3>
-      <span class="badge ${usrName === 'breinerYT' ? 'badge-owner' : ''}">
-        ${usrName === 'breinerYT' ? 'OWNER' : 'LECTOR'}
-      </span>
-    `;
-    grid.appendChild(card);
-  });
+  try {
+    const res = await fetch('/api/usuarios');
+    const usuarios = await res.json();
+    
+    grid.innerHTML = '';
+    usuarios.forEach(u => {
+      const card = document.createElement('div');
+      card.className = 'profile-card';
+      card.innerHTML = `
+        <img src="${u.fotoUrl}" alt="Avatar">
+        <h3>${u.nombre}</h3>
+        <span class="badge ${u.nombre === 'breinerYT' ? 'badge-owner' : ''}">
+          ${u.nombre === 'breinerYT' ? 'OWNER' : 'LECTOR'}
+        </span>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (e) {
+    grid.innerHTML = 'Error al cargar los perfiles.';
+  }
 }
 
-// OWNER - Limpiar Chat
+// OWNER - LIMPIAR CHAT
 const btnClearChat = document.getElementById('btn-owner-clear-chat');
 if (btnClearChat) {
-  btnClearChat.addEventListener('click', () => {
-    localStorage.removeItem('ml_chat_live');
+  btnClearChat.addEventListener('click', async () => {
+    if (!usuarioActual || usuarioActual.nombre !== 'breinerYT') return;
+    
+    await fetch('/api/chat/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ autor: usuarioActual.nombre })
+    });
+    
     cargarChatLive();
-    alert('El chat en vivo ha sido limpiado.');
+    alert('Chat limpiado de la Base de Datos.');
   });
 }
-btnLogout.addEventListener('click', () => {
-  location.reload();
-});
