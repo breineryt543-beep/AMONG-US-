@@ -1,0 +1,7 @@
+name = "misionlunar"
+compatibility_date = "2026-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "misionlunar-db"
+database_id = "4d53262e-2a4a-4ccf-8c76-db595ce09642"
