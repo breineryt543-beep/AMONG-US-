@@ -11,7 +11,7 @@
   <div class="overlay" id="navOverlay"></div>
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <img class="avatar session-avatar" src="" alt="avatar" />
+      <span class="session-avatar-slot"></span>
       <div>
         <div class="name session-name"></div>
         <div class="user session-user"></div>
@@ -34,13 +34,13 @@
       <div class="topbar-logo">MISIÓN<span> LUNAR</span></div>
     </div>
     <div class="topbar-right">
-      <img class="avatar session-avatar" src="" alt="avatar" />
+      <span class="session-avatar-slot"></span>
     </div>
   </header>
 
   <main class="page">
     <div class="profile-head">
-      <img class="avatar-lg session-avatar" src="" alt="avatar" />
+      <span class="session-avatar-slot-lg"></span>
       <div>
         <h1 class="profile-name session-name"></h1>
         <div class="profile-user session-user"></div>
@@ -51,20 +51,33 @@
     <div class="panel card-pad">
       <h2 class="section-title" style="font-size:20px; margin-bottom:18px;">Editar perfil</h2>
       <div id="errorBox" class="error-msg"></div>
-      <div id="okBox" class="error-msg" style="border-color:var(--cyan); background:rgba(95,212,208,0.1); color:var(--cyan);"></div>
+      <div id="okBox" class="error-msg" style="border-color:var(--pen); background:rgba(63,110,165,0.1); color:var(--pen);"></div>
+
       <form id="profileForm">
         <div class="field">
           <label for="name">Nombre</label>
           <input type="text" id="name" />
         </div>
+
         <div class="field">
-          <label for="avatar">URL de foto de perfil</label>
-          <input type="text" id="avatar" placeholder="https://..." />
+          <label for="avatarFile">Foto de perfil</label>
+          <input type="file" id="avatarFile" accept="image/*" />
         </div>
+        <div class="avatar-preview-wrap" id="avatarPreviewWrap"></div>
+
         <div class="field">
           <label for="bio">Bio</label>
           <textarea id="bio" rows="3" placeholder="Cuéntanos algo sobre ti..."></textarea>
         </div>
+
+        <div class="picker-title">Marco animado</div>
+        <div class="picker-sub">Elige el marco que rodea tu foto (51 disponibles)</div>
+        <div class="frame-grid" id="frameGrid"></div>
+
+        <div class="picker-title">Insignia</div>
+        <div class="picker-sub">Un ícono pequeño junto a tu foto</div>
+        <div class="badge-grid" id="badgeGrid"></div>
+
         <button type="submit" class="btn">Guardar cambios</button>
       </form>
     </div>
@@ -73,15 +86,76 @@
   <script src="js/app.js"></script>
   <script>
     const user = initShell("perfil");
+    const errorBox = document.getElementById("errorBox");
+    const okBox = document.getElementById("okBox");
+
+    let pendingAvatar = user ? user.avatar : "";
+    let selectedFrame = user ? (user.frame || "none") : "none";
+    let selectedBadge = user ? (user.badge || "") : "";
+
+    function currentPreviewUser() {
+      return { username: user.username, avatar: pendingAvatar, frame: selectedFrame, badge: selectedBadge };
+    }
+
+    function renderPreview() {
+      document.getElementById("avatarPreviewWrap").innerHTML = renderAvatarHTML(currentPreviewUser(), "lg");
+    }
+
+    function renderFrameGrid() {
+      const grid = document.getElementById("frameGrid");
+      grid.innerHTML = "";
+      FRAMES.forEach((f) => {
+        const btn = document.createElement("div");
+        btn.className = "frame-swatch" + (f.id === selectedFrame ? " selected" : "");
+        btn.title = f.name;
+        const style = f.f1 ? `--f1:${f.f1};--f2:${f.f2 || f.f1};` : "";
+        btn.innerHTML = `<span class="avatar-frame ${f.cls}" style="${style}"><img class="avatar" src="${pendingAvatar || defaultAvatarFor(user)}" alt=""/></span>`;
+        btn.addEventListener("click", () => {
+          selectedFrame = f.id;
+          renderFrameGrid();
+          renderPreview();
+        });
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderBadgeGrid() {
+      const grid = document.getElementById("badgeGrid");
+      grid.innerHTML = "";
+      BADGES.forEach((b) => {
+        const btn = document.createElement("div");
+        btn.className = "badge-swatch" + (b.id === selectedBadge ? " selected" : "");
+        btn.title = b.name;
+        btn.textContent = b.emoji || "—";
+        btn.addEventListener("click", () => {
+          selectedBadge = b.id;
+          renderBadgeGrid();
+          renderPreview();
+        });
+        grid.appendChild(btn);
+      });
+    }
 
     if (user) {
       document.getElementById("name").value = user.name;
-      document.getElementById("avatar").value = user.avatar;
       document.getElementById("bio").value = user.bio || "";
+      renderPreview();
+      renderFrameGrid();
+      renderBadgeGrid();
     }
 
-    const errorBox = document.getElementById("errorBox");
-    const okBox = document.getElementById("okBox");
+    document.getElementById("avatarFile").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      hideError(errorBox);
+      try {
+        pendingAvatar = await compressImageFile(file);
+        renderPreview();
+        renderFrameGrid();
+      } catch (err) {
+        showError(errorBox, "No se pudo procesar la imagen. Intenta con otra foto.");
+      }
+    });
 
     document.getElementById("profileForm").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -93,16 +167,16 @@
           body: JSON.stringify({
             username: user.username,
             name: document.getElementById("name").value.trim(),
-            avatar: document.getElementById("avatar").value.trim(),
+            avatar: pendingAvatar,
             bio: document.getElementById("bio").value.trim(),
+            frame: selectedFrame,
+            badge: selectedBadge,
           }),
         });
         setSession(updated);
         okBox.textContent = "¡Perfil actualizado!";
         okBox.classList.add("show");
-        document.querySelectorAll(".session-name").forEach((el) => (el.textContent = updated.name));
-        document.querySelectorAll(".session-avatar").forEach((el) => (el.src = updated.avatar));
-        document.querySelectorAll(".session-bio").forEach((el) => (el.textContent = updated.bio || "Explorador/a de Misión Lunar."));
+        refreshSessionUI(updated);
       } catch (err) {
         showError(errorBox, err.message);
       }
