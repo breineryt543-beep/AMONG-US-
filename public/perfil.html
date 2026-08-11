@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Perfil · Misión Lunar</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="overlay" id="navOverlay"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img class="avatar session-avatar" src="" alt="avatar" />
+      <div>
+        <div class="name session-name"></div>
+        <div class="user session-user"></div>
+      </div>
+    </div>
+    <a class="nav-link" data-page="home" href="home.html"><span class="nav-icon">&#9679;</span> Home</a>
+    <a class="nav-link" data-page="perfil" href="perfil.html"><span class="nav-icon">&#9737;</span> Perfil</a>
+    <a class="nav-link" data-page="blog" href="blog.html"><span class="nav-icon">&#9998;</span> Blog</a>
+    <a class="nav-link" data-page="amigos" href="amigos.html"><span class="nav-icon">&#9733;</span> Amigos</a>
+    <div class="sidebar-footer">
+      <button class="btn btn-ghost btn-small" id="logoutBtn" style="width:100%;">Salir</button>
+    </div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" id="navToggle" aria-label="Abrir menú">
+        <span></span><span></span>
+      </button>
+      <div class="topbar-logo">MISIÓN<span> LUNAR</span></div>
+    </div>
+    <div class="topbar-right">
+      <img class="avatar session-avatar" src="" alt="avatar" />
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="profile-head">
+      <img class="avatar-lg session-avatar" src="" alt="avatar" />
+      <div>
+        <h1 class="profile-name session-name"></h1>
+        <div class="profile-user session-user"></div>
+        <p class="profile-bio session-bio"></p>
+      </div>
+    </div>
+
+    <div class="panel card-pad">
+      <h2 class="section-title" style="font-size:20px; margin-bottom:18px;">Editar perfil</h2>
+      <div id="errorBox" class="error-msg"></div>
+      <div id="okBox" class="error-msg" style="border-color:var(--cyan); background:rgba(95,212,208,0.1); color:var(--cyan);"></div>
+      <form id="profileForm">
+        <div class="field">
+          <label for="name">Nombre</label>
+          <input type="text" id="name" />
+        </div>
+        <div class="field">
+          <label for="avatar">URL de foto de perfil</label>
+          <input type="text" id="avatar" placeholder="https://..." />
+        </div>
+        <div class="field">
+          <label for="bio">Bio</label>
+          <textarea id="bio" rows="3" placeholder="Cuéntanos algo sobre ti..."></textarea>
+        </div>
+        <button type="submit" class="btn">Guardar cambios</button>
+      </form>
+    </div>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script>
+    const user = initShell("perfil");
+
+    if (user) {
+      document.getElementById("name").value = user.name;
+      document.getElementById("avatar").value = user.avatar;
+      document.getElementById("bio").value = user.bio || "";
+    }
+
+    const errorBox = document.getElementById("errorBox");
+    const okBox = document.getElementById("okBox");
+
+    document.getElementById("profileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError(errorBox);
+      okBox.classList.remove("show");
+      try {
+        const { user: updated } = await api("/profile", {
+          method: "POST",
+          body: JSON.stringify({
+            username: user.username,
+            name: document.getElementById("name").value.trim(),
+            avatar: document.getElementById("avatar").value.trim(),
+            bio: document.getElementById("bio").value.trim(),
+          }),
+        });
+        setSession(updated);
+        okBox.textContent = "¡Perfil actualizado!";
+        okBox.classList.add("show");
+        document.querySelectorAll(".session-name").forEach((el) => (el.textContent = updated.name));
+        document.querySelectorAll(".session-avatar").forEach((el) => (el.src = updated.avatar));
+        document.querySelectorAll(".session-bio").forEach((el) => (el.textContent = updated.bio || "Explorador/a de Misión Lunar."));
+      } catch (err) {
+        showError(errorBox, err.message);
+      }
+    });
+  </script>
+</body>
+</html>
