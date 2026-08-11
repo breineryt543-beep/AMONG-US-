@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Amigos · Misión Lunar</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="overlay" id="navOverlay"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img class="avatar session-avatar" src="" alt="avatar" />
+      <div>
+        <div class="name session-name"></div>
+        <div class="user session-user"></div>
+      </div>
+    </div>
+    <a class="nav-link" data-page="home" href="home.html"><span class="nav-icon">&#9679;</span> Home</a>
+    <a class="nav-link" data-page="perfil" href="perfil.html"><span class="nav-icon">&#9737;</span> Perfil</a>
+    <a class="nav-link" data-page="blog" href="blog.html"><span class="nav-icon">&#9998;</span> Blog</a>
+    <a class="nav-link" data-page="amigos" href="amigos.html"><span class="nav-icon">&#9733;</span> Amigos</a>
+    <div class="sidebar-footer">
+      <button class="btn btn-ghost btn-small" id="logoutBtn" style="width:100%;">Salir</button>
+    </div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" id="navToggle" aria-label="Abrir menú">
+        <span></span><span></span>
+      </button>
+      <div class="topbar-logo">MISIÓN<span> LUNAR</span></div>
+    </div>
+    <div class="topbar-right">
+      <img class="avatar session-avatar" src="" alt="avatar" />
+    </div>
+  </header>
+
+  <main class="page">
+    <h1 class="hero-title" style="font-size:38px; margin-bottom:20px;">Amigos</h1>
+    <p style="color:var(--muted); margin-bottom:26px; font-size:14px;">
+      Todos los tripulantes registrados en Misión Lunar, en un solo lugar global.
+    </p>
+
+    <div id="peopleGrid" class="people-grid"></div>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script>
+    const user = initShell("amigos");
+    const grid = document.getElementById("peopleGrid");
+    let myFriends = [];
+
+    async function loadFriends() {
+      const { friends } = await api(`/friends?username=${user.username}`);
+      myFriends = friends.map((f) => f.username);
+    }
+
+    async function loadPeople() {
+      grid.innerHTML = `<div class="empty-state">Cargando tripulantes...</div>`;
+      await loadFriends();
+      const { users } = await api("/users");
+      grid.innerHTML = "";
+      users.forEach((u) => {
+        if (u.username === user.username) return;
+        const isFriend = myFriends.includes(u.username);
+        const card = document.createElement("div");
+        card.className = "panel person-card";
+        card.innerHTML = `
+          <img class="avatar-lg" style="width:70px;height:70px;" src="${u.avatar}" alt="" />
+          <div class="name">${u.name}</div>
+          <div class="user">@${u.username}</div>
+          <button class="btn btn-small ${isFriend ? "btn-ghost" : ""}" style="width:100%;">
+            ${isFriend ? "Quitar amigo" : "Agregar amigo"}
+          </button>
+        `;
+        card.querySelector("button").addEventListener("click", async () => {
+          await api("/friends", {
+            method: "POST",
+            body: JSON.stringify({ username: user.username, friend: u.username }),
+          });
+          loadPeople();
+        });
+        grid.appendChild(card);
+      });
+      if (!grid.children.length) {
+        grid.innerHTML = `<div class="empty-state">Todavía no hay más tripulantes registrados.</div>`;
+      }
+    }
+
+    if (user) loadPeople();
+  </script>
+</body>
+</html>
