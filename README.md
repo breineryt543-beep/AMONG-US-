@@ -22,9 +22,14 @@ mision-lunar/
 ├── amigos.html
 ├── css/style.css
 ├── js/app.js
-├── functions/api/      (backend: register, login, users, profile, blog, friends)
-└── wrangler.toml
+└── functions/api/      (backend: register, login, users, profile, blog, friends)
 ```
+
+> **Importante:** este proyecto NO lleva `wrangler.toml`. Si Cloudflare detecta
+> ese archivo, a veces intenta desplegarlo como un Worker (`wrangler deploy`)
+> en lugar de como Pages, y falla con "Missing entry-point to Worker script".
+> El binding de KV se configura desde el dashboard (paso 4 de abajo), no por
+> archivo.
 
 ## 1. Sube el proyecto a GitHub
 
@@ -67,8 +72,6 @@ Cloudflare detecta sola la carpeta `functions/` y la convierte en tu backend.
    - **Variable name:** `COMIC_KV`
    - **KV namespace:** el que creaste en el paso 3.
 3. Guarda y vuelve a desplegar (**Deployments** → **Retry deployment**, o simplemente haz un nuevo `git push`).
-
-También puedes editar `wrangler.toml` con el ID real si prefieres manejarlo desde línea de comandos con `wrangler`.
 
 ## 5. Listo
 
