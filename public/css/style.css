@@ -167,10 +167,16 @@ label {
 }
 .auth-logo {
   font-size: 46px;
-  color: var(--ink);
   margin-bottom: 6px;
+  background: linear-gradient(90deg, var(--ink) 0%, var(--marker) 25%, var(--ink) 50%, var(--pen) 75%, var(--ink) 100%);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: logoShine 6s linear infinite;
 }
-.auth-logo span { color: var(--marker); }
+.auth-logo span { color: var(--marker); -webkit-text-fill-color: var(--marker); }
 .auth-tag {
   color: var(--muted);
   font-size: 16px;
@@ -226,8 +232,15 @@ label {
   font-family: 'Kalam', cursive;
   font-size: 24px;
   letter-spacing: 0.01em;
+  background: linear-gradient(90deg, var(--ink) 0%, var(--marker) 25%, var(--ink) 50%, var(--pen) 75%, var(--ink) 100%);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: logoShine 6s linear infinite;
 }
-.topbar-logo span { color: var(--marker); }
+.topbar-logo span { color: var(--marker); -webkit-text-fill-color: var(--marker); }
 .topbar-right {
   display: flex;
   align-items: center;
@@ -345,9 +358,15 @@ label {
 }
 .hero-title {
   font-size: 66px;
-  color: var(--ink);
+  background: linear-gradient(90deg, var(--ink) 0%, var(--pen) 30%, var(--ink) 60%, var(--marker) 90%, var(--ink) 100%);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: logoShine 7s linear infinite;
 }
-.hero-title span { color: var(--marker); }
+.hero-title span { color: var(--marker); -webkit-text-fill-color: var(--marker); }
 .hero-desc {
   max-width: 520px;
   color: var(--ink-soft);
@@ -489,4 +508,185 @@ label {
 @media (max-width: 360px) {
   .hero-title { font-size: 34px; }
   .people-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ============ Animación del logo (marcador brillante) ============ */
+@keyframes logoShine {
+  to { background-position: -300% center; }
+}
+
+/* ============ Sistema de marcos animados para la foto de perfil ============ */
+.avatar-frame,
+.avatar-frame-lg,
+.avatar-frame-person {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: 4px;
+}
+.avatar-frame-lg { padding: 6px; }
+.avatar-frame-person { padding: 5px; }
+
+.avatar-frame::before,
+.avatar-frame-lg::before,
+.avatar-frame-person::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  z-index: 0;
+}
+.avatar-frame img,
+.avatar-frame-lg img,
+.avatar-frame-person img {
+  position: relative;
+  z-index: 1;
+}
+
+.avatar-person {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  object-fit: cover;
+  background: var(--paper-2);
+}
+
+.badge-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  background: var(--paper-2);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  z-index: 2;
+}
+.avatar-frame-lg .badge-dot { width: 30px; height: 30px; font-size: 17px; bottom: 2px; right: 2px; }
+.avatar-frame-person .badge-dot { width: 22px; height: 22px; font-size: 13px; }
+
+.frame-none { padding: 0; }
+.frame-none::before { display: none; }
+
+/* Familia 1: anillo girante */
+.frame-rotate::before {
+  background: conic-gradient(from 0deg, var(--f1), var(--f2), var(--f1));
+  animation: frameSpin 3.5s linear infinite;
+}
+
+/* Familia 2: aura pulsante */
+.frame-glow::before {
+  background: var(--f1);
+  animation: frameGlow 1.8s ease-in-out infinite;
+}
+@keyframes frameGlow {
+  0%, 100% { box-shadow: 0 0 3px 1px var(--f1); }
+  50% { box-shadow: 0 0 13px 5px var(--f2); }
+}
+
+/* Familia 3: hormigas en marcha (segmentos girando) */
+.frame-marching::before {
+  background: conic-gradient(from 0deg, var(--f1) 0deg 16deg, transparent 16deg 34deg);
+  animation: frameSpin 5s linear infinite;
+}
+
+/* Familia 4: destellos */
+.frame-sparkle::before {
+  background: var(--f1);
+  opacity: 0.32;
+}
+.frame-sparkle::after {
+  content: "✦";
+  position: absolute;
+  top: -6px;
+  right: -3px;
+  color: var(--f2);
+  font-size: 13px;
+  z-index: 2;
+  animation: frameTwinkle 1.3s ease-in-out infinite;
+}
+@keyframes frameTwinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Familia 5: neón */
+.frame-neon::before {
+  background: transparent;
+  border: 3px solid var(--f1);
+  box-shadow: 0 0 6px var(--f1), inset 0 0 6px var(--f2);
+  animation: frameNeonPulse 1.6s ease-in-out infinite;
+}
+@keyframes frameNeonPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.5); }
+}
+
+/* Familia 6: rebote */
+.frame-bounce::before { background: var(--f1); }
+.frame-bounce img { animation: frameBounce 1.1s ease-in-out infinite; }
+@keyframes frameBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Familia 7: arcoíris cósmico */
+.frame-rainbow::before {
+  background: conic-gradient(red, orange, yellow, green, blue, indigo, violet, red);
+  animation: frameSpin 4s linear infinite;
+}
+
+@keyframes frameSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============ Selectores de marco / insignia (perfil) ============ */
+.picker-title {
+  font-family: 'Kalam', cursive;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+.picker-sub {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.frame-grid, .badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px;
+  margin-bottom: 22px;
+}
+.frame-swatch, .badge-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: var(--paper);
+  cursor: pointer;
+}
+.frame-swatch:hover, .badge-swatch:hover { background: var(--rule); }
+.frame-swatch.selected, .badge-swatch.selected {
+  border-color: var(--marker);
+  background: rgba(217,98,43,0.12);
+}
+.badge-swatch { font-size: 22px; height: 46px; }
+
+.avatar-preview-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 6px 0 22px;
 }
