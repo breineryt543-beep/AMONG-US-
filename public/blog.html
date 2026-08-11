@@ -11,7 +11,7 @@
   <div class="overlay" id="navOverlay"></div>
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <img class="avatar session-avatar" src="" alt="avatar" />
+      <span class="session-avatar-slot"></span>
       <div>
         <div class="name session-name"></div>
         <div class="user session-user"></div>
@@ -34,7 +34,7 @@
       <div class="topbar-logo">MISIÓN<span> LUNAR</span></div>
     </div>
     <div class="topbar-right">
-      <img class="avatar session-avatar" src="" alt="avatar" />
+      <span class="session-avatar-slot"></span>
     </div>
   </header>
 
@@ -74,7 +74,7 @@
           el.className = "panel post";
           el.innerHTML = `
             <div class="post-head">
-              <img class="avatar" src="${p.avatar}" alt="" />
+              ${renderAvatarHTML(p, "sm")}
               <div>
                 <b>${p.name}</b> <span>@${p.username} · ${timeAgo(p.createdAt)}</span>
               </div>
