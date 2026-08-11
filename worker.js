@@ -53,6 +53,8 @@ async function handleRegister(request, env) {
     name: name.trim().slice(0, 60),
     avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${clean}`,
     bio: "",
+    frame: "none",
+    badge: "",
     passwordHash,
     createdAt: Date.now(),
   };
@@ -97,7 +99,7 @@ async function handleProfileGet(url, env) {
 }
 
 async function handleProfilePost(request, env) {
-  const { username, name, avatar, bio } = await readJson(request);
+  const { username, name, avatar, bio, frame, badge } = await readJson(request);
   const clean = (username || "").trim().toLowerCase();
   if (!clean) return json({ error: "Falta el usuario." }, 400);
 
@@ -107,8 +109,11 @@ async function handleProfilePost(request, env) {
 
   const user = JSON.parse(raw);
   if (name && name.trim()) user.name = name.trim().slice(0, 60);
-  if (avatar && avatar.trim()) user.avatar = avatar.trim().slice(0, 500);
+  // La foto viene comprimida como data URL (base64) desde el navegador.
+  if (avatar && avatar.trim()) user.avatar = avatar.trim().slice(0, 250000);
   if (bio !== undefined) user.bio = bio.trim().slice(0, 280);
+  if (frame !== undefined) user.frame = String(frame).slice(0, 30);
+  if (badge !== undefined) user.badge = String(badge).slice(0, 20);
 
   await env.COMIC_KV.put(key, JSON.stringify(user));
   return json({ user: stripPassword(user) });
@@ -141,6 +146,8 @@ async function handleBlogPost(request, env) {
     username: user.username,
     name: user.name,
     avatar: user.avatar,
+    frame: user.frame || "none",
+    badge: user.badge || "",
     text: text.trim().slice(0, 500),
     createdAt: Date.now(),
   };
