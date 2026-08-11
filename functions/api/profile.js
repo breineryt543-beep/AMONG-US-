@@ -1,9 +1,4 @@
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+import { json } from "../_utils.js";
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -14,7 +9,8 @@ export async function onRequestGet({ request, env }) {
     const raw = await env.COMIC_KV.get(`user:${username}`);
     if (!raw) return json({ error: "Usuario no encontrado." }, 404);
 
-    return json({ user: JSON.parse(raw) });
+    const { passwordHash, ...publicUser } = JSON.parse(raw);
+    return json({ user: publicUser });
   } catch (e) {
     return json({ error: "Error del servidor." }, 500);
   }
@@ -36,7 +32,9 @@ export async function onRequestPost({ request, env }) {
     if (bio !== undefined) user.bio = bio.trim().slice(0, 280);
 
     await env.COMIC_KV.put(key, JSON.stringify(user));
-    return json({ user });
+
+    const { passwordHash, ...publicUser } = user;
+    return json({ user: publicUser });
   } catch (e) {
     return json({ error: "Error del servidor." }, 500);
   }
