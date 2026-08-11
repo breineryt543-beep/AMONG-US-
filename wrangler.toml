@@ -1,8 +1,0 @@
-name = "mithur-2-0"
-main = "index.js"
-compatibility_date = "2026-01-01"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "misionlunar-db"
-database_id = "8ff5d474-16fc-450c-894e-7701ccd8c1d5"
