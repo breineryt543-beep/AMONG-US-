@@ -1,9 +1,4 @@
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+import { json } from "../_utils.js";
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -17,7 +12,9 @@ export async function onRequestGet({ request, env }) {
     const friends = await Promise.all(
       usernames.map(async (f) => {
         const u = await env.COMIC_KV.get(`user:${f}`);
-        return u ? JSON.parse(u) : null;
+        if (!u) return null;
+        const { passwordHash, ...publicUser } = JSON.parse(u);
+        return publicUser;
       })
     );
 
