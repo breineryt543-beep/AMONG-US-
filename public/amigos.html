@@ -11,7 +11,7 @@
   <div class="overlay" id="navOverlay"></div>
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <img class="avatar session-avatar" src="" alt="avatar" />
+      <span class="session-avatar-slot"></span>
       <div>
         <div class="name session-name"></div>
         <div class="user session-user"></div>
@@ -34,7 +34,7 @@
       <div class="topbar-logo">MISIÓN<span> LUNAR</span></div>
     </div>
     <div class="topbar-right">
-      <img class="avatar session-avatar" src="" alt="avatar" />
+      <span class="session-avatar-slot"></span>
     </div>
   </header>
 
@@ -69,7 +69,7 @@
         const card = document.createElement("div");
         card.className = "panel person-card";
         card.innerHTML = `
-          <img class="avatar-lg" style="width:70px;height:70px;" src="${u.avatar}" alt="" />
+          ${renderAvatarHTML(u, "person")}
           <div class="name">${u.name}</div>
           <div class="user">@${u.username}</div>
           <button class="btn btn-small ${isFriend ? "btn-ghost" : ""}" style="width:100%;">
