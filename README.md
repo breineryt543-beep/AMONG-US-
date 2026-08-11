@@ -1,93 +1,88 @@
 # Misión Lunar
 
-Plataforma tipo Netflix para tu cómic. Login/registro simple (solo nombre y
-usuario, sin contraseña), página principal con foto de perfil y menú
-hamburguesa (Home, Perfil, Blog, Amigos globales).
+Plataforma tipo Netflix para tu cómic. Login/registro con usuario y
+contraseña, página principal con foto de perfil y menú hamburguesa (Home,
+Perfil, Blog, Amigos globales).
 
-- **Frontend:** HTML + CSS + JS puro (sin frameworks, sin paso de build).
-- **Backend:** Cloudflare Pages Functions (carpeta `functions/api`).
-- **Base de datos:** Cloudflare KV (guarda usuarios, posts del blog y amigos).
-- **Hosting:** Cloudflare Pages.
-- **Código:** GitHub.
+- **Todo es un solo Cloudflare Worker:** sirve las páginas (carpeta `public/`)
+  y también la API (dentro del mismo `worker.js`), por eso funciona con la
+  URL `tuproyecto.workers.dev` que ya tienes.
+- **Base de datos:** Cloudflare KV (usuarios, posts del blog, amigos).
+- **Código:** GitHub. Cada `git push` vuelve a desplegar solo.
 
 ## Estructura
 
 ```
 mision-lunar/
-├── index.html        (login)
-├── register.html      (registro)
-├── home.html           (portada estilo Netflix)
-├── perfil.html
-├── blog.html
-├── amigos.html
-├── css/style.css
-├── js/app.js
-└── functions/api/      (backend: register, login, users, profile, blog, friends)
+├── worker.js           (backend: rutas /api/... + sirve los archivos estáticos)
+├── wrangler.toml        (config: aquí se declara el KV, se enlaza solo)
+└── public/
+    ├── index.html        (login)
+    ├── register.html      (registro)
+    ├── home.html            (portada estilo Netflix)
+    ├── perfil.html
+    ├── blog.html
+    ├── amigos.html
+    ├── css/style.css
+    └── js/app.js
 ```
 
-> **Importante:** este proyecto NO lleva `wrangler.toml`. Si Cloudflare detecta
-> ese archivo, a veces intenta desplegarlo como un Worker (`wrangler deploy`)
-> en lugar de como Pages, y falla con "Missing entry-point to Worker script".
-> El binding de KV se configura desde el dashboard (paso 4 de abajo), no por
-> archivo.
-
 ## 1. Sube el proyecto a GitHub
-
-Desde la carpeta del proyecto:
 
 ```bash
 git init
 git add .
-git commit -m "Primera versión de Misión Lunar"
+git commit -m "Misión Lunar"
 git branch -M main
-git remote add origin https://github.com/TU_USUARIO/mision-lunar.git
+git remote add origin https://github.com/TU_USUARIO/mithur_2.0.git
 git push -u origin main
 ```
 
-(Antes crea el repo vacío en https://github.com/new, sin README, y copia esa
-URL en el paso `git remote add`.)
+## 2. Confirma tu proyecto en Cloudflare
 
-## 2. Crea el proyecto en Cloudflare Pages
+Como tu proyecto actual quedó creado como **Worker** (por eso la URL termina
+en `.workers.dev`), no hace falta recrearlo: con esta nueva estructura
+(`worker.js` + `wrangler.toml` con `[assets]`) el mismo proyecto va a
+desplegar bien, porque ahora sí tiene un punto de entrada.
 
-1. Entra a https://dash.cloudflare.com → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-2. Elige tu repositorio `mision-lunar`.
-3. En la configuración de build:
-   - **Framework preset:** None
-   - **Build command:** (déjalo vacío)
-   - **Build output directory:** `/`
-4. Dale a **Save and Deploy**.
+Solo confirma en el dashboard, en tu proyecto → **Settings** → **Build**,
+que el comando de build esté vacío y que el "root directory" sea la raíz del
+repo (donde está `wrangler.toml`).
 
-Cloudflare detecta sola la carpeta `functions/` y la convierte en tu backend.
+## 3. Crea el KV una sola vez y pégalo en el código (esto lo hace automático)
 
-## 3. Crea la base de datos (KV)
+Este es el único paso manual, y solo se hace **una vez**:
 
-1. En el dashboard: **Workers & Pages** → **KV** → **Create a namespace**.
-2. Nómbralo, por ejemplo, `mision-lunar-db`.
-3. Copia el **ID** que te da.
+1. Dashboard → **Workers & Pages** → **KV** → **Create a namespace** → nómbralo
+   `mision-lunar-db`.
+2. Copia el **ID** que te da.
+3. Abre `wrangler.toml` en tu repo y reemplaza `PON_AQUI_TU_KV_ID` por ese ID:
+   ```toml
+   [[kv_namespaces]]
+   binding = "COMIC_KV"
+   id = "aqui-va-tu-id-real"
+   ```
+4. `git add . && git commit -m "Enlazar KV" && git push`.
 
-## 4. Conecta el KV con tu proyecto de Pages
+A partir de ahí, **cada vez que despliegues (cada `git push`), el KV se
+enlaza solo** porque queda declarado en el código — no vuelves a tocar el
+dashboard para esto.
 
-1. Entra a tu proyecto de Pages → **Settings** → **Functions** → **KV namespace bindings**.
-2. Agrega un binding:
-   - **Variable name:** `COMIC_KV`
-   - **KV namespace:** el que creaste en el paso 3.
-3. Guarda y vuelve a desplegar (**Deployments** → **Retry deployment**, o simplemente haz un nuevo `git push`).
+## 4. Listo
 
-## 5. Listo
-
-Cuando el deploy termine, Cloudflare te da una URL tipo
-`https://mision-lunar.pages.dev`. Ábrela, regístrate con tu nombre y usuario,
-y ya puedes navegar Home / Perfil / Blog / Amigos.
+Abre tu URL `https://mithur-2-0.breineryt543.workers.dev/`, regístrate con
+nombre, usuario y contraseña, e inicia sesión. Ya deberías caer en la
+página principal.
 
 ## Notas
 
-- El login es intencionalmente simple (sin contraseña), tal como se pidió:
-  solo nombre y usuario. Si más adelante quieres agregar contraseñas o
-  verificación, se puede sumar sobre esta misma base.
-- Las fotos de perfil por defecto se generan automáticamente con DiceBear a
-  partir del usuario; en la página de Perfil puedes pegar la URL de otra
-  imagen si prefieres.
-- Los capítulos del cómic en `home.html` son tarjetas de ejemplo — ahí
-  conectarás tu lector de cómic real más adelante.
-- Cada vez que hagas `git push` a `main`, Cloudflare Pages vuelve a
-  desplegar automáticamente.
+- Las contraseñas se guardan cifradas (hash SHA-256), nunca en texto plano,
+  y ningún endpoint de la API las devuelve al navegador.
+- Las fotos de perfil por defecto se generan con DiceBear a partir del
+  usuario; en Perfil puedes pegar la URL de otra imagen.
+- Los capítulos en `home.html` son tarjetas de ejemplo — ahí conectas tu
+  lector de cómic real más adelante.
+- Si ya te habías registrado con la versión vieja (sin contraseña, con
+  `functions/api/`), esas cuentas no van a funcionar con este nuevo
+  `worker.js` — bórralas del KV (dashboard → KV → tu namespace → busca
+  `user:tu_usuario` y elimínala) y regístrate de nuevo.

@@ -1,0 +1,14 @@
+name = "mision-lunar"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# El KV se enlaza SOLO en cada despliegue porque queda declarado aquí.
+# Solo tienes que pegar el ID una vez (ver README.md, paso 3) y nunca
+# más tienes que tocar el dashboard para esto.
+[[kv_namespaces]]
+binding = "COMIC_KV"
+id = "PON_AQUI_TU_KV_ID"
