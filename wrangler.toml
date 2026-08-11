@@ -1,4 +1,4 @@
-name = "mision-lunar"
+name = "mithur-2-0"
 main = "worker.js"
 compatibility_date = "2024-09-01"
 
@@ -11,4 +11,4 @@ binding = "ASSETS"
 # más tienes que tocar el dashboard para esto.
 [[kv_namespaces]]
 binding = "COMIC_KV"
-id = "PON_AQUI_TU_KV_ID"
+id = "47b5579e04c846aea1e1fe739a530d52"
