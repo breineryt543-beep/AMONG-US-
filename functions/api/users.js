@@ -1,9 +1,4 @@
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+import { json } from "../_utils.js";
 
 export async function onRequestGet({ env }) {
   try {
@@ -11,7 +6,9 @@ export async function onRequestGet({ env }) {
     const users = await Promise.all(
       list.keys.map(async (k) => {
         const raw = await env.COMIC_KV.get(k.name);
-        return raw ? JSON.parse(raw) : null;
+        if (!raw) return null;
+        const { passwordHash, ...publicUser } = JSON.parse(raw);
+        return publicUser;
       })
     );
     const clean = users.filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
